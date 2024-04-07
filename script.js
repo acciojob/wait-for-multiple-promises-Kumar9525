@@ -42,3 +42,39 @@ Promise.all(promises).then(results => {
   totalRow.appendChild(totalTimeTaken);
   output.appendChild(totalRow);
 });
+
+
+describe('Table Promise Test', () => {
+  beforeEach(() => {
+    cy.visit(baseUrl + '/main.html'); // Ensure you set baseUrl correctly
+  });
+
+  it('should display loading initially', () => {
+    cy.get('tr#loading').find('td').should('contain', 'Loading...');
+  });
+
+  it('should display promises and total time', () => {
+    cy.wait(4000); // Wait for all promises to resolve
+
+    cy.get('#output').find('tr').should('have.length', 5); // Corrected assertion for total rows
+
+    cy.get('#output > tr').each(($row, index) => {
+      const promiseName = $row.find('td:nth-child(1)').text().trim();
+      const timeTaken = parseInt($row.find('td:nth-child(2)').text().trim());
+
+      switch (promiseName) {
+        case 'Promise 1':
+        case 'Promise 2':
+        case 'Promise 3':
+          cy.wrap(timeTaken).should('be.gte', 1).and('be.lte', 3);
+          break;
+        case 'Total':
+          cy.wrap(timeTaken).should('be.gte', 2).and('be.lte', 4);
+          break;
+        default:
+          throw new Error(`Unexpected promise name: ${promiseName}`);
+      }
+    });
+  });
+});
+
